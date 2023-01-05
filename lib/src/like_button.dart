@@ -37,6 +37,7 @@ class LikeButton extends StatefulWidget {
     this.padding,
     this.countDecoration,
     this.postFrameCallback,
+    this.onLikeTrigger,
   })  : bubblesSize = bubblesSize ?? size * 2.0,
         circleSize = circleSize ?? size * 0.8,
         super(key: key);
@@ -109,6 +110,8 @@ class LikeButton extends StatefulWidget {
 
   /// call back of first frame with LikeButtonState
   final Function(LikeButtonState state)? postFrameCallback;
+
+  final LikeButtonTriggerCallback? onLikeTrigger;
 
   @override
   State<StatefulWidget> createState() => LikeButtonState();
@@ -412,6 +415,19 @@ class LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
   Widget _createLikeCountWidget(int? likeCount, bool isLiked, String text) {
     return widget.countBuilder?.call(likeCount, isLiked, text) ??
         Text(text, style: const TextStyle(color: Colors.grey));
+  }
+
+  void triggerLikeChange() {
+    if (_controller!.isAnimating || _likeCountController!.isAnimating) {
+      return;
+    }
+    if (widget.onLikeTrigger != null) {
+      widget.onLikeTrigger!(_isLiked ?? true).then((bool? isLiked) {
+        _handleIsLikeChanged(isLiked);
+      });
+    } else {
+      _handleIsLikeChanged(!(_isLiked ?? true));
+    }
   }
 
   void onTap() {
